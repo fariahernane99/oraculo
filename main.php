@@ -20,6 +20,7 @@ session_start();
         } else {
             echo "Usuário logado: " . htmlspecialchars($_SESSION['username']);
         }
+        
         ?>
     </p>
     <p>Estamos felizes em ter você aqui. Explore e aproveite!</p>
