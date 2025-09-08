@@ -20,7 +20,7 @@ navegador.implicitly_wait(10) # espera 10 segundos para todo comando
 user = os.getenv("USER")
 password = os.getenv("PASSWORD")
 orgao = os.getenv("ORGAO")
-processo = os.getenv("PROCESSO")
+processo = "1400.01.0058446/2025-26"
 assunto = "Criação de número de patrimônio"
 conteudo_oficio = f"""
 <body>
