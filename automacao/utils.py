@@ -1,4 +1,4 @@
-def cria_oficio(assunto, destinatario, signatario, graduacao, funcao, paragrafos):
+def cria_oficio(assunto: str, destinatario: str, signatario: str, graduacao: str, funcao: str, paragrafos: list) -> str:
     
     lista_principal = ''
     for i in paragrafos:
@@ -16,9 +16,7 @@ def cria_oficio(assunto, destinatario, signatario, graduacao, funcao, paragrafos
         <p class="Nome_Signatário">{funcao}</p>
     </body>
     """
-
-    with open("oficio.html", "w", encoding="utf-8") as f:
-        f.write(conteudo_oficio)
+    return conteudo_oficio
 
 if __name__ == "__main__":
     assunto = "Solicitação de liberação de atividades de curso"
@@ -31,4 +29,7 @@ if __name__ == "__main__":
                 """Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.""",
                 """Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."""
                 ]
-    cria_oficio(assunto, destinatario, signatario, graduacao, funcao, paragrafos)
+    oficio = cria_oficio(assunto, destinatario, signatario, graduacao, funcao, paragrafos)
+    
+    with open("oficio.html", "w", encoding="utf-8") as f:
+        f.write(oficio)
