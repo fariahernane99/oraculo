@@ -22,11 +22,24 @@ def home():
     return {"message": "API de respostas de processos do SEI"}
 
 @app.post("/responde_processo")
-def responde_processo(assunto: str, destinatario: str, signatario: str, graduacao: str, funcao: str, paragrafos: list[str],processo= "1400.01.0062225/2025-37"):
+def responde_processo(assunto: str, destinatario: str, signatario: str, graduacao: str, funcao: str, paragrafos: list[str],processo= "1400.01.0066601/2025-31"):
     try:
+        
         options = webdriver.ChromeOptions()
-        options.add_argument("--headless=new")
-        options.add_argument("--window-size=1920,1080")
+        #options.add_argument('--headless=new')
+        #options.add_argument('--no-sandbox')
+        #options.add_argument('--disable-dev-shm-usage')
+        #options.add_argument('--disable-gpu')
+        #options.add_argument('--disable-extensions')
+        #options.add_argument('--disable-software-rasterizer')
+        #options.add_argument('--ignore-certificate-errors')
+        #options.add_argument('--window-size=1920,1080')
+        #options.add_argument('--start-maximized')
+        #options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36')
+        
+        #options = webdriver.ChromeOptions()
+        #ptions.add_argument("--headless=new")
+        #options.add_argument("--window-size=1920,1080")
 
         servico = Service(ChromeDriverManager().install())
         navegador = webdriver.Chrome(service=servico, options=options)
@@ -46,7 +59,7 @@ def responde_processo(assunto: str, destinatario: str, signatario: str, graduaca
 
         # inserir o meu usuário
         navegador.find_element(By.ID, "txtUsuario").send_keys(user)
-        sleep(0.1)
+        sleep(0.5)
 
         # inserir minha senha
         navegador.find_element(By.ID, "pwdSenha").send_keys(password)
@@ -65,13 +78,19 @@ def responde_processo(assunto: str, destinatario: str, signatario: str, graduaca
         pesquisa = navegador.find_element(By.ID, "txtPesquisaRapida")
         pesquisa.send_keys(processo)
         pesquisa.send_keys(Keys.ENTER)
+        
+        print('pesquisou o processo')
 
         # mudar o frame
         iframe = navegador.find_element(By.ID, "ifrVisualizacao")
         navegador.switch_to.frame(iframe)
+        
+        print('mudou o frame')
 
         # cliar em Incluir Documento
         navegador.find_element(By.CSS_SELECTOR, "#divArvoreAcoes > a:nth-child(1) > img").click()
+        
+        print('incluiu documento')
 
         # inserir o texto 'Oficio' na caixa de pesquisa
         # pesquisa2 = navegador.find_element(By.ID, "txtFiltro").send_keys("Ofício")
@@ -84,6 +103,7 @@ def responde_processo(assunto: str, destinatario: str, signatario: str, graduaca
 
         # clicar em Público
         navegador.find_element(By.CSS_SELECTOR, "#divOptPublico > div > label").click()
+        sleep(0.5)
 
         # clicar em Salvar
         navegador.find_element(By.ID, "btnSalvar").click()
