@@ -22,11 +22,12 @@ def home():
     return {"message": "API de respostas de processos do SEI"}
 
 @app.post("/responde_processo")
-def responde_processo(assunto: str, destinatario: str, signatario: str, graduacao: str, funcao: str, paragrafos: list[str],processo= "1400.01.0066601/2025-31"):
+def responde_processo(assunto: str, destinatario: str, signatario: str, graduacao: str, funcao: str, paragrafos: list[str],processo= "1400.01.0071121/2025-17"):
     try:
         
         options = webdriver.ChromeOptions()
-        #options.add_argument('--headless=new')
+        options.add_argument('--headless=new')
+        #options.add_argument("--log-level=3")
         #options.add_argument('--no-sandbox')
         #options.add_argument('--disable-dev-shm-usage')
         #options.add_argument('--disable-gpu')
@@ -84,11 +85,12 @@ def responde_processo(assunto: str, destinatario: str, signatario: str, graduaca
         # mudar o frame
         iframe = navegador.find_element(By.ID, "ifrVisualizacao")
         navegador.switch_to.frame(iframe)
+        sleep(0.5)
         
         print('mudou o frame')
 
         # cliar em Incluir Documento
-        navegador.find_element(By.CSS_SELECTOR, "#divArvoreAcoes > a:nth-child(1) > img").click()
+        navegador.find_element(By.XPATH, '//*[@id="divArvoreAcoes"]/a[1]').click()
         
         print('incluiu documento')
 
