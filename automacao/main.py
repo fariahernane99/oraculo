@@ -9,6 +9,8 @@ import os
 from dotenv import load_dotenv
 from fastapi import FastAPI
 import uvicorn
+from buscaoficio import busca_conteudo_oficio
+from ai_converter import make_response
 
 # importação de módulos criados
 from utils import cria_oficio
@@ -22,25 +24,11 @@ def home():
     return {"message": "API de respostas de processos do SEI"}
 
 @app.post("/responde_processo")
-def responde_processo(assunto: str, destinatario: str, signatario: str, graduacao: str, funcao: str, paragrafos: list[str],processo= "1400.01.0071121/2025-17"):
+def responde_processo(assunto: str, destinatario: str, signatario: str, graduacao: str, funcao: str, processo= "1400.01.0022399/2025-94", doc_sei = '120811439'):
     try:
         
         options = webdriver.ChromeOptions()
         options.add_argument('--headless=new')
-        #options.add_argument("--log-level=3")
-        #options.add_argument('--no-sandbox')
-        #options.add_argument('--disable-dev-shm-usage')
-        #options.add_argument('--disable-gpu')
-        #options.add_argument('--disable-extensions')
-        #options.add_argument('--disable-software-rasterizer')
-        #options.add_argument('--ignore-certificate-errors')
-        #options.add_argument('--window-size=1920,1080')
-        #options.add_argument('--start-maximized')
-        #options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36')
-        
-        #options = webdriver.ChromeOptions()
-        #ptions.add_argument("--headless=new")
-        #options.add_argument("--window-size=1920,1080")
 
         servico = Service(ChromeDriverManager().install())
         navegador = webdriver.Chrome(service=servico, options=options)
@@ -50,8 +38,6 @@ def responde_processo(assunto: str, destinatario: str, signatario: str, graduaca
         password = os.getenv("PASSWORD")
         orgao = os.getenv("ORGAO")
         
-        conteudo_oficio = cria_oficio(assunto, destinatario, signatario, graduacao, funcao, paragrafos)
-
         # acessa o site do SEI
         navegador.get("https://www.sei.mg.gov.br/")
 
@@ -75,22 +61,39 @@ def responde_processo(assunto: str, destinatario: str, signatario: str, graduaca
         
         print('acessou')
 
+        # buscar o conteudo do oficio
+        pergunta_ia = busca_conteudo_oficio(doc_sei, navegador)
+        print(pergunta_ia)
+        
+        # passa o prompt para a ia
+        resposta_ia = make_response(pergunta_ia)
+
+        # criar o oficio
+        conteudo_oficio = cria_oficio(assunto, destinatario, signatario, graduacao, funcao, resposta_ia)
+        print(conteudo_oficio)
+        
+        print('tentando mudar para o frame padrão')
+        # voltar para o frame padrão
+        navegador.switch_to.default_content()
+    
         # clicar em Pesquisar
         pesquisa = navegador.find_element(By.ID, "txtPesquisaRapida")
         pesquisa.send_keys(processo)
         pesquisa.send_keys(Keys.ENTER)
         
         print('pesquisou o processo')
+        
 
         # mudar o frame
         iframe = navegador.find_element(By.ID, "ifrVisualizacao")
         navegador.switch_to.frame(iframe)
-        sleep(0.5)
+        sleep(1)
         
         print('mudou o frame')
 
         # cliar em Incluir Documento
-        navegador.find_element(By.XPATH, '//*[@id="divArvoreAcoes"]/a[1]').click()
+        navegador.execute_script('document.querySelector("#divArvoreAcoes > a:nth-child(1) > img").click()')
+        #navegador.find_element(By.XPATH, '//*[@id="divArvoreAcoes"]/a[1]').click()
         
         print('incluiu documento')
 
@@ -99,16 +102,20 @@ def responde_processo(assunto: str, destinatario: str, signatario: str, graduaca
 
         # clicar em Ofício
         #navegador.find_element(By.CSS_SELECTOR, "#tblSeries > tbody > tr:nth-child(52) > td > a.ancoraOpcao").click()
-        navegador.find_element(By.XPATH, "//a[text()='Ofício']").click()
+        #navegador.find_element(By.XPATH, "//a[text()='Ofício']").click()
+        navegador.execute_script('document.querySelector("#tblSeries > tbody > tr:nth-child(53) > td > a.ancoraOpcao").click()')
         
         print('clicou em oficio')
 
         # clicar em Público
-        navegador.find_element(By.CSS_SELECTOR, "#divOptPublico > div > label").click()
+        #navegador.find_element(By.CSS_SELECTOR, "#divOptPublico > div > label").click()
+        navegador.execute_script('document.querySelector("#optPublico").click()')
         sleep(0.5)
 
         # clicar em Salvar
-        navegador.find_element(By.ID, "btnSalvar").click()
+        #navegador.find_element(By.ID, "btnSalvar").click()
+        navegador.execute_script('document.querySelector("#btnSalvar").click()')
+        print('salvou o oficio')
         sleep(10)
 
         # mudar a janela
@@ -119,16 +126,21 @@ def responde_processo(assunto: str, destinatario: str, signatario: str, graduaca
         #navegador.maximize_window()
 
         # mudar o iframe
+        print('tentando mudar o frame do editor de texto')
         iframe = navegador.find_element(By.CSS_SELECTOR, "#cke_4_contents > iframe")
         navegador.switch_to.frame(iframe)
         navegador.execute_script(f"document.body.innerHTML = `{conteudo_oficio}`")
+        print('inseriu o texto no oficio')
 
         # salvar o documento
         navegador.switch_to.default_content()
         sleep(2)
         navegador.find_element(By.XPATH, "/html/body/form/div[1]/div[1]/div/div/span[2]/span[1]/span[3]/a").click()
+        print('clicou em salvar o documento')
         sleep(2)
         navegador.close()
+        print('fechou o navegador')
+        print('SUCESSO!!!')
         
         #fechar o navegador
         navegador.quit()
